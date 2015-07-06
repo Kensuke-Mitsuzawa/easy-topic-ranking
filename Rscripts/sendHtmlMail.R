@@ -1,3 +1,5 @@
+#! /usr/bin/Rscript
+
 library(knitr)
 library(markdown)
 library(sendmailR)
@@ -69,8 +71,21 @@ exampleUsage <- function(){
 option_list <- list(
   optparse::make_option(c('-spath', '--script_dir'), type='character', help=''),
   optparse::make_option(c('-ipath', '--input_json'), type='character', help=''),
+  optparse::make_option(c('-mailfrom', '--email_address_from'), type='character', help=''),
   optparse::make_option(c('-mail', '--email_address'), type='character', help=''),
+  optparse::make_option(c('-savedir', '--save_dir'), type='character', help=''),
   optparse::make_option(c('-pname', '--project_name'), type='character'),
   optparse::make_option(c('-sendmail', '--mail_send'), type='logical', default=FALSE, help='')
-  )
+)
+opt <- optparse::parse_args(optparse::OptionParser(option_list=option_list))
 
+if(is.null(opt$script_dir)) stop("--script_dir is mandatory option")
+if(is.null(opt$input_json)) stop("--input_json is mandatory option")
+if(is.null(opt$project_name)) stop("--project_name is mandatory option")
+if(is.null(opt$email_address)) stop("--email_address is mandatory option")
+if(is.null(opt$email_address_from)) stop("--email_address_from is mandatory option")
+if(is.null(opt$save_dir)) stop("--save_dir is mandatory option")
+
+main(script_dir = opt$script_dir, path_json = opt$input_json, save_dir = opt$save_dir, 
+     mailTo = opt$email_address, mailFrom = opt$email_address_from,  
+     project_name = opt$project_name, flag_send_mail= opt$mail_send, mail_subject='Clustering Result')
