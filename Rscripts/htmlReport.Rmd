@@ -1,0 +1,34 @@
+---
+title: "Topic clustering Report"
+output: html_document
+---
+
+```{r, header, echo=FALSE, warning=FALSE}
+library(xtable)
+library(plyr)
+```
+
+
+```{r, funcs, echo=FALSE, warning=FALSE, results='asis'}
+showResultInClustering <- function(topicParameter, results_frame){
+  print(sprintf('Topic Parameter %s', topicParameter))
+  frameInClustering <- results_frame[results_frame$topicParameter==topicParameter, ]
+  frameInClustering$topicParameter <- as.integer(frameInClustering$topicParameter)
+  frameInClustering$topicId <- as.integer(frameInClustering$topicId)
+  frameInClustering$docs <- as.integer(frameInClustering$docs)
+  
+  frameInClustering <- frameInClustering[order(frameInClustering$docs, decreasing = T), ]
+  frameInClustering$rank <- 1:nrow(frameInClustering)
+  frameInClustering <- frameInClustering[, c("rank", "docs", "topicId", "words")]
+  
+  xtable::print.xtable(xtable::xtable(frameInClustering), type = 'html', include.rownames = F)
+
+}
+```
+
+```{r, echo=FALSE, warning=FALSE, results='asis'}
+for (topicParameter in unique(results_frame$topicParameter)){
+  showResultInClustering(topicParameter, results_frame)
+}
+cat("<style type=\"text/css\"> table {border-collapse: collapse;} table,td,th{ border:solid 1px; } td{text-align:right} th{text-align:center} </style>\n")
+```
