@@ -24,12 +24,12 @@ class TestRankingCodes(unittest.TestCase):
 
     def test_file_load(self):
         try:
-            pathInputCsv = 'resources/husbund_fumans_collection.csv'
+            pathInputCsv = 'resources/inputSample.csv'
             inputFrame = interface.load_data(pathInputCsv, coding='utf-8')
         except Exception as e:
             sys.exit('file loading error because of {}'.format(e))
         try:
-            pathInputXlsx = 'resources/husbund_fumans_collection.xlsx'
+            pathInputXlsx = 'resources/inputSample.xlsx'
             inputFrame = interface.load_data(pathInputXlsx, sheetName='Sheet1')
         except Exception as e:
             sys.exit('file loading error becasuse of {}'.format(e))

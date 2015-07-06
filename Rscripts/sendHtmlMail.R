@@ -18,7 +18,7 @@ getResultRows <- function(listIndex, topic_cluster_results){
 }
 
 
-KnitHtml <- function(project_name, save_dir){
+KnitHtml <- function(project_name, save_dir, results_frame){
   path_to_html <- file.path(save_dir, sprintf('%s-report.html', project_name))
   knitr::opts_knit$set(upload.fun=image_uri)
   knitr::knit2html(input = './htmlReport.Rmd', output = path_to_html)
@@ -44,7 +44,7 @@ main <- function(script_dir, path_json, save_dir, mailTo, mailFrom,
   topic_cluster_results <- rjson::fromJSON(file = path_json)
   results_frame <- plyr::ldply(.data = 1:length(topic_cluster_results), .fun = getResultRows, topic_cluster_results)
   
-  html_path <- KnitHtml(project_name, save_dir)
+  html_path <- KnitHtml(project_name, save_dir, results_frame)
   
   if(flag_send_mail==T){
     send_mail(html_path, mailFrom, mailTo, kSubject)
@@ -82,10 +82,17 @@ opt <- optparse::parse_args(optparse::OptionParser(option_list=option_list))
 if(is.null(opt$script_dir)) stop("--script_dir is mandatory option")
 if(is.null(opt$input_json)) stop("--input_json is mandatory option")
 if(is.null(opt$project_name)) stop("--project_name is mandatory option")
-if(is.null(opt$email_address)) stop("--email_address is mandatory option")
-if(is.null(opt$email_address_from)) stop("--email_address_from is mandatory option")
 if(is.null(opt$save_dir)) stop("--save_dir is mandatory option")
+if(opt$mail_send==TRUE){
+  if(is.null(opt$email_address)) stop("--email_address is mandatory option")
+  if(is.null(opt$email_address_from)) stop("--email_address_from is mandatory option")
+  email_address <- opt$email_address
+  email_address_from <- opt$email_address_from
+} else {
+  email_address <- ''
+  email_address_from <- ''
+}
 
 main(script_dir = opt$script_dir, path_json = opt$input_json, save_dir = opt$save_dir, 
-     mailTo = opt$email_address, mailFrom = opt$email_address_from,  
+     mailTo = email_address, mailFrom = email_address_from,  
      project_name = opt$project_name, flag_send_mail= opt$mail_send, mail_subject='Clustering Result')

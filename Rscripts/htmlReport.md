@@ -10,7 +10,7 @@ output: html_document
 
 [1] "Topic Parameter 3"
 <!-- html table generated in R 3.1.3 by xtable 1.7-4 package -->
-<!-- Mon Jul  6 18:02:22 2015 -->
+<!-- Tue Jul  7 02:38:26 2015 -->
 <table border=1>
 <tr> <th> rank </th> <th> docs </th> <th> topicId </th> <th> words </th>  </tr>
   <tr> <td align="right">   1 </td> <td align="right">   9 </td> <td align="right">   1 </td> <td> 2, SOD, 企画, こと, 発売, 販売, モデル, デビュー </td> </tr>
@@ -19,7 +19,7 @@ output: html_document
    </table>
 [1] "Topic Parameter 4"
 <!-- html table generated in R 3.1.3 by xtable 1.7-4 package -->
-<!-- Mon Jul  6 18:02:22 2015 -->
+<!-- Tue Jul  7 02:38:26 2015 -->
 <table border=1>
 <tr> <th> rank </th> <th> docs </th> <th> topicId </th> <th> words </th>  </tr>
   <tr> <td align="right">   1 </td> <td align="right">   8 </td> <td align="right">   0 </td> <td> モデル, デビュー, 発売, こと, 引退, 2007年, 発表, 同年 </td> </tr>
@@ -29,7 +29,7 @@ output: html_document
    </table>
 [1] "Topic Parameter 5"
 <!-- html table generated in R 3.1.3 by xtable 1.7-4 package -->
-<!-- Mon Jul  6 18:02:22 2015 -->
+<!-- Tue Jul  7 02:38:26 2015 -->
 <table border=1>
 <tr> <th> rank </th> <th> docs </th> <th> topicId </th> <th> words </th>  </tr>
   <tr> <td align="right">   1 </td> <td align="right">   5 </td> <td align="right">   0 </td> <td> A3, 2, 00, こと, 製品, 発売, 販売, 8 </td> </tr>
