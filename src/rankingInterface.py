@@ -164,17 +164,34 @@ def pre_process(targetSentences, configObject, dockerId, lang='ja', workingDir='
     return documents, dictionaryObj
 
 
-def format_output(clusteringResults):
+def format_output(clusteringResults, documents, targetSentenceFrame):
+    """
+
+    :param clusteringResults:
+    :param documents:
+    :param targetSentenceFrame:
+    :return:
+    """
+
     items = []
     for topicIdKey in clusteringResults.keys():
         topicRanking = create_topics_ranking(summarise_topics(clusteringResults[topicIdKey]["docs"]))
         for rankingItem in topicRanking:
+
+            # rankingItem is tuple (topicId, [documentIndex])
+            # get tokens in document with clustered document index
+            tokensInDocOfCluster = [documents[documentIndex] for documentIndex in rankingItem[1]]
+            # get sentence of input file with clustered document index
+            sentencesOfCluster = [targetSentenceFrame.ix[documentIndex, 'targetColumnName']
+                                  for documentIndex in rankingItem[1]]
             items.append(
             {
                 "topicParameter": topicIdKey,
                 "topicID": rankingItem[0],
                 "wordsInTopic": clusteringResults[topicIdKey]["words"][rankingItem[0]].tolist(),
-                "docsCluster": len(rankingItem[1])
+                "docsCluster": len(rankingItem[1]),
+                "sentences": sentencesOfCluster,
+                "tokenized": tokensInDocOfCluster
             })
 
 
@@ -216,14 +233,17 @@ def main(inputFilePath, inputfileParams, topicParams, projectName,
     configObject = loadConfigFile(pathConfigFile)
 
     targetColumnName = inputfileParams['targetColumnName']
+    indexColumnName = inputfileParams['indexColumnName']
     coding = inputfileParams['coding']
     sheet = inputfileParams['sheetName']
     inputFrame = load_data(inputFilePath, coding=coding, sheetName=sheet)
-    targetSentences = inputFrame.ix[:, targetColumnName].tolist()
+    #targetSentences = inputFrame.ix[:, [targetColumnName, indexColumnName]].tolist()
+    targetSentenceFrame = inputFrame.ix[:, [targetColumnName, indexColumnName]]
+    targetSentenceFrame.columns = ['targetColumnName', 'indexColumnName']
+    targetSentenceFrame.sort(columns='indexColumnName', ascending=True)
 
-
-    documents, dictionaryObj = pre_process(targetSentences, configObject, dockerId, lang,
-                                           workingDir, pathStopWords, docker_sudo)
+    documents, dictionaryObj = pre_process(targetSentenceFrame.targetColumnName.tolist(), configObject, dockerId,
+                                           lang, workingDir, pathStopWords, docker_sudo)
 
     # corpusを作る
     corpusArray = lda_module.createCorpus(documents, dictionaryObj)
@@ -236,7 +256,8 @@ def main(inputFilePath, inputfileParams, topicParams, projectName,
     if mode == 'lda':
         clusteringResults = mode_lda(corpusArray, vocabList, min_topics_limit, max_topics_limit, nTopWords, configObject)
 
-    outputJson = format_output(clusteringResults)
+    # transform into JSON format which has topicParam, topicID, wordsInTopic, sentenceInTopic, tokensInTopic
+    outputJson = format_output(clusteringResults, documents, targetSentenceFrame)
     pathOutPutJson = os.path.join(workingDir, '{}.json'.format(projectName))
     with codecs.open(pathOutPutJson, 'w', 'utf-8') as f:
         f.write(json.dumps(obj=outputJson, ensure_ascii=False, indent=4))
@@ -250,7 +271,7 @@ def __exmaple_usage():
     os.chdir(abs_path_dir)
 
     inputFilePath = '../resources/inputSample.csv'
-    inputfileParams = {'targetColumnName': 'contents', 'coding': 'utf-8', 'sheetName': ''}
+    inputfileParams = {'targetColumnName': 'contents', 'indexColumnName': 'docIndex', 'coding': 'utf-8', 'sheetName': ''}
     projectName = 'example'
 
     pathConfigFile = '../resources/ldaConfig.ini'
@@ -259,26 +280,31 @@ def __exmaple_usage():
     docker_sudo = False
     dockerID = 'aa2685b94082'
 
+    lang = 'ja'
+    n_top_words = 15
+
     topicParams = {'min_topic': 3, 'max_topic': 5}
     mode = 'lda'
 
-    outputJson = main(inputFilePath, inputfileParams=inputfileParams, topicParams=topicParams, pathConfigFile=pathConfigFile,
-         pathStopWords=pathStopWords, dockerId=dockerID, docker_sudo=docker_sudo, mode=mode, workingDir='tmpDir')
+    workingDir = './tmpDir'
 
-    import codecs
-    pathOutPutJson = os.path.abspath('../resources/{}.json'.format(projectName))
-    with codecs.open(pathOutPutJson, 'w', 'utf-8') as f:
-        f.write(json.dumps(obj=outputJson, ensure_ascii=False, indent=4))
+    pathOutPutJson = main(inputFilePath=inputFilePath, inputfileParams=inputfileParams, topicParams=topicParams,
+         projectName=projectName, pathConfigFile=pathConfigFile,
+         pathStopWords=pathStopWords, dockerId=dockerID, docker_sudo=docker_sudo,
+         mode=mode, lang=lang, nTopWords=n_top_words, workingDir=workingDir)
 
     pathResource = os.path.abspath('../resources')
     generate_html_report(pathScriptDir=abs_path_dir, pathToJson=pathOutPutJson, projetcName=projectName,
                          resourceDir=pathResource, mailFrom='', mailTo='', sendMail=False)
 
-    return outputJson
+    return pathOutPutJson
 
 
 
 if __name__ == '__main__':
+
+    __exmaple_usage()
+    sys.exit()
 
     abs_path = os.path.abspath(sys.argv[0])
     abs_path_dir = os.path.dirname(abs_path)
@@ -291,6 +317,7 @@ if __name__ == '__main__':
     parser.add_argument('--mode', required=False, default='lda', help='method to make cluster. Default is lda')
     parser.add_argument('--encoding', required=False, default='utf-8', help='character encode of input file. Default is utf-8')
     parser.add_argument('--targetColumnName', required=False, default='contents', help='column name of data in file.')
+    parser.add_argument('--indexColumnName', required=False, default='docIndex', help='index of documents')
     parser.add_argument('--sheetName', required=False, default='', help='sheetName in which data is.')
 
     # mail setting
@@ -312,7 +339,8 @@ if __name__ == '__main__':
     parser.add_argument('--workingDir', required=True, help='tmporary working Dir')
     args = parser.parse_args()
 
-    fileParams = {'targetColumnName': args.targetColumnName, 'coding': args.encoding, 'sheetName': args.sheetName}
+    fileParams = {'targetColumnName': args.targetColumnName, 'indexColumnName': args.indexColumnName,
+                  'coding': args.encoding, 'sheetName': args.sheetName}
     topicParams = {'min_topic': args.min_topics, 'max_topic': args.max_topics}
 
     if args.lang=='ja' and args.dockerId=='':
@@ -323,6 +351,6 @@ if __name__ == '__main__':
          pathStopWords=args.pathStopWords, dockerId=args.dockerId, docker_sudo=args.dockerSudo,
          mode=args.mode, lang=args.lang, nTopWords=args.n_top_words, workingDir=args.workingDir)
 
-    pathResource = os.path.abspath('../resources')
+    pathResource = os.path.abspath(args.workingDir)
     generate_html_report(pathScriptDir=abs_path_dir, pathToJson=pathOutPutJson, projetcName=args.projectName,
                          resourceDir=pathResource, mailFrom=args.mailFrom, mailTo=args.mailTo, sendMail=args.sendMail)
