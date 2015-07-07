@@ -13,3 +13,4 @@ resources/.DS_Store
 *dist
 *index
 *pyc
+.DS_Store

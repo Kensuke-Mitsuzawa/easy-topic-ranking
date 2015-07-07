@@ -181,7 +181,7 @@ def format_output(clusteringResults):
     return items
 
 
-def mode_lda(corpusArray, vocabList, min_topics_limit, max_topics_limit, configObject):
+def mode_lda(corpusArray, vocabList, min_topics_limit, max_topics_limit, n_top_words, configObject):
 
     n_iter = int(configObject.get('ldaConfig', 'n_iteration'))
     random_state = int(configObject.get('ldaConfig', 'random_state'))
@@ -191,7 +191,8 @@ def mode_lda(corpusArray, vocabList, min_topics_limit, max_topics_limit, configO
         distriDatas, topicWordDictionary, DocumentTopicDictionary = lda_module.lda_process(corpusArray, vocabList,
                                                                                            n_topics=topics,
                                                                                            n_iter=n_iter,
-                                                                                           random_state=random_state)
+                                                                                           random_state=random_state,
+                                                                                           n_top_words_per_topic=n_top_words)
         topic_document_dictionary = summarise_topics(DocumentTopicDictionary)
         sortedResult = create_topics_ranking(topic_document_dictionary)
 
@@ -208,7 +209,8 @@ def mode_lda(corpusArray, vocabList, min_topics_limit, max_topics_limit, configO
 
 
 def main(inputFilePath, inputfileParams, topicParams, projectName,
-         pathConfigFile, pathStopWords, dockerId, docker_sudo, mode, lang, workingDir):
+         pathConfigFile, pathStopWords, dockerId, docker_sudo, mode, lang,
+         nTopWords, workingDir):
     import codecs
 
     configObject = loadConfigFile(pathConfigFile)
@@ -232,7 +234,7 @@ def main(inputFilePath, inputfileParams, topicParams, projectName,
     min_topics_limit = topicParams['min_topic']
     max_topics_limit = topicParams['max_topic']
     if mode == 'lda':
-        clusteringResults = mode_lda(corpusArray, vocabList, min_topics_limit, max_topics_limit, configObject)
+        clusteringResults = mode_lda(corpusArray, vocabList, min_topics_limit, max_topics_limit, nTopWords, configObject)
 
     outputJson = format_output(clusteringResults)
     pathOutPutJson = os.path.join(workingDir, '{}.json'.format(projectName))
@@ -305,6 +307,7 @@ if __name__ == '__main__':
     parser.add_argument('--projectName', required=True, help='project name of this cluster analysis. This name is used file prefix.')
     parser.add_argument('--min_topics', required=True, type=int, help='minimum number of topics')
     parser.add_argument('--max_topics', required=True, type=int, help='maximum number of topics')
+    parser.add_argument('--n_top_words', required=True, type=int, help='N of top words for each cluster')
 
     parser.add_argument('--workingDir', required=True, help='tmporary working Dir')
     args = parser.parse_args()
@@ -318,7 +321,7 @@ if __name__ == '__main__':
     pathOutPutJson = main(inputFilePath=args.inputFilePath, inputfileParams=fileParams, topicParams=topicParams,
          projectName=args.projectName, pathConfigFile=args.pathConfigFile,
          pathStopWords=args.pathStopWords, dockerId=args.dockerId, docker_sudo=args.dockerSudo,
-         mode=args.mode, lang=args.lang, workingDir=args.workingDir)
+         mode=args.mode, lang=args.lang, nTopWords=args.n_top_words, workingDir=args.workingDir)
 
     pathResource = os.path.abspath('../resources')
     generate_html_report(pathScriptDir=abs_path_dir, pathToJson=pathOutPutJson, projetcName=args.projectName,
