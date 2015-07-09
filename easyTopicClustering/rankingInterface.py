@@ -9,9 +9,11 @@ import sys
 import logging
 import json
 import ConfigParser
+from parser import Parser as FileParser
 from nLargestDocSummary.parsers.parser import Parser
 from nLargestDocSummary.frequency_summarizer import FrequencySummarizer
 from nLargestDocSummary.mecab_wrapper.mecab_wrapper import MecabWrapper
+
 logging.basicConfig(level=logging.INFO)
 
 
@@ -71,25 +73,6 @@ def constructDocument(splittedStrJson, posRemained):
     return documents
 
 
-def load_data(filePath, coding='utf-8', sheetName='Sheet1'):
-
-    if os.path.exists(filePath) == False:
-        sys.exit('{} does not exist. System Exists'.format(filePath))
-
-    # 入力はcsvかxlsxの形式
-    fileName, fileExtenstion = os.path.splitext(filePath)
-
-    if fileExtenstion == '.csv':
-        inputFrame = pd.read_csv(filePath, encoding=coding, header=0)
-    elif fileExtenstion == '.xlsx' or fileExtenstion == '.xls':
-        ExcelObject = pd.ExcelFile(filePath)
-        inputFrame = ExcelObject.parse(sheetName)
-    else:
-        sys.exit('Invalid fileExtenstion {}'.format(fileExtenstion))
-
-    return inputFrame
-
-
 def load_csv_data(pathStopWords, coding):
     stopFrame = pd.read_csv(pathStopWords, encoding=coding,header=0)
     stopWordsList = [unicode(item)
@@ -98,29 +81,48 @@ def load_csv_data(pathStopWords, coding):
     return stopWordsList
 
 
-def pre_process(targetSentences, configObject, dockerId, lang='ja', workingDir='./tmpDir',
-                pathStopWords='../resources/stopWord.csv', docker_sudo=True):
+def pre_process(targetSentences, param_object):
 
-    if lang=='ja':
-        dockerInputObj = MorphologySplitter.jsonFormatter(targetSentences)
-        temporaryFilePath = MorphologySplitter.saveInTemporaryDir(dockerInputObj, workingDir=workingDir)
-        splittedStrJson = json.loads(MorphologySplitter.DockerCall(temporaryFilePath, container_id=dockerId, have_sudo=docker_sudo))
-        # construct documents
-        pos_remained = configObject.get('POS', 'pos_remained').decode('utf-8').split(u',')
-        documents = constructDocument(splittedStrJson, pos_remained)
-    elif lang=='en':
+    # construct documents
+    pos_remained = param_object.algorithm_param.posRemained
+
+    if param_object.lang_params.lang == 'ja':
+        if param_object.tokenizer_param.mode=='docker':
+            dockerInputObj = MorphologySplitter.jsonFormatter(targetSentences)
+            temporaryFilePath = MorphologySplitter.saveInTemporaryDir(dockerInputObj,
+                                                                      workingDir=param_object.working_param.workingDir)
+            splittedStrJson = json.loads(MorphologySplitter.DockerCall(temporaryFilePath,
+                                                                       container_id=param_object.tokenizer_param.dockerId,
+                                                                       have_sudo=param_object.tokenizer_param.docker_sudo))
+            documents = constructDocument(splittedStrJson, pos_remained)
+
+        elif param_object.tokenizer_param.mode=='mecab':
+            from nLargestDocSummary.mecab_wrapper.mecab_wrapper import MecabWrapper
+            pathNeologd = param_object.tokenizer_param.pathNeologd
+            osType = param_object.tokenizer_param.osType
+
+            mecab_wrapper = MecabWrapper(dictType='neologd', osType=osType, pathNeologd=pathNeologd)
+            documentsList = [mecab_wrapper.tokenize(sentence=s, is_feature=True) for s in targetSentences]
+            documents = [
+                [t[0]
+                    for t in s
+                    if t[1][0] in pos_remained
+                ]
+                for s in documentsList]
+
+    elif param_object.lang_params.lang == 'en':
         documents = [
             [word.lower() for word in sentence.split(u' ')]
             for sentence in targetSentences]
 
     # stopwordをつくる
-    stopWords = load_csv_data(pathStopWords, 'utf-8')
+    stopWords = load_csv_data(param_object.algorithm_param.pathStopWords, 'utf-8')
     stopWords = set(stopWords)
     pathToSaveDictionary = '../resources/dictionary.dict'
 
     # 辞書を作る
-    low_limit = int(configObject.get('stopWordSetting', 'low_frequency_limit'))
-    high_ratio_limit = float(configObject.get('stopWordSetting', 'high_ratio_limit'))
+    low_limit = param_object.algorithm_param.stopLowLimit
+    high_ratio_limit = param_object.algorithm_param.stopHighLimit
     dictionaryObj = lda_module.createDictionary(documents, stopWords, pathToSaveDictionary,
                                                 low_limit_int=low_limit, high_limit_ratio=high_ratio_limit)
 
@@ -161,10 +163,13 @@ def format_output(clusteringResults, documents, targetSentenceFrame):
     return items
 
 
-def mode_lda(corpusArray, vocabList, min_topics_limit, max_topics_limit, n_top_words, configObject):
+def mode_lda(corpusArray, vocabList, param_object):
 
-    n_iter = int(configObject.get('ldaConfig', 'n_iteration'))
-    random_state = int(configObject.get('ldaConfig', 'random_state'))
+    min_topics_limit = param_object.topic_param.min_topic
+    max_topics_limit = param_object.topic_param.max_topic
+
+    n_iter = param_object.algorithm_param.nIter
+    random_state = param_object.algorithm_param.randomState
     clusteringResults = {}
 
     for topics in range(min_topics_limit, max_topics_limit+1):
@@ -172,7 +177,7 @@ def mode_lda(corpusArray, vocabList, min_topics_limit, max_topics_limit, n_top_w
                                                                                            n_topics=topics,
                                                                                            n_iter=n_iter,
                                                                                            random_state=random_state,
-                                                                                           n_top_words_per_topic=n_top_words)
+                                                                                           n_top_words_per_topic=param_object.algorithm_param.nTopWords)
         topic_document_dictionary = summarise_topics(DocumentTopicDictionary)
         sortedResult = create_topics_ranking(topic_document_dictionary)
 
@@ -188,13 +193,12 @@ def mode_lda(corpusArray, vocabList, min_topics_limit, max_topics_limit, n_top_w
     return clusteringResults
 
 
-def getBestSentence(clusteredObjects, sentExtractParams):
+def getBestSentence(clusteredObjects, n_sentence, tokenizer_param):
 
     newClusteredObjects = []
 
-    pathNeologd = sentExtractParams['pathNeologd']
-    osType = sentExtractParams['osType']
-    n_sentence = sentExtractParams['n_sentence']
+    pathNeologd = tokenizer_param.pathNeologd
+    osType = tokenizer_param.osType
 
     mecab_wrapper = MecabWrapper(dictType='neologd', osType=osType, pathNeologd=pathNeologd)
     for clusteredObj in clusteredObjects:
@@ -210,29 +214,13 @@ def getBestSentence(clusteredObjects, sentExtractParams):
     return newClusteredObjects
 
 
-def main(inputFilePath, inputfileParams, topicParams, sentExtractParams, projectName,
-         pathConfigFile, pathStopWords, dockerId, docker_sudo, mode, lang,
-         nTopWords, workingDir):
+def main(param_object):
     import codecs
 
-    configObject = loadConfigFile(pathConfigFile)
+    file_parser = FileParser(param_object)
+    targetSentenceFrame = file_parser.load_data()
 
-    targetColumnName = inputfileParams['targetColumnName']
-    indexColumnName = inputfileParams['indexColumnName']
-    coding = inputfileParams['coding']
-    sheet = inputfileParams['sheetName']
-    inputFrame = load_data(inputFilePath, coding=coding, sheetName=sheet)
-    if targetColumnName not in inputFrame.columns:
-        sys.exit('You must select correct clumn name. Now {}'.format(targetColumnName))
-    if indexColumnName not in inputFrame.columns:
-        sys.exit('You must select correct clumn name. Now {}'.format(indexColumnName))
-
-    targetSentenceFrame = inputFrame.ix[:, [targetColumnName, indexColumnName]]
-    targetSentenceFrame.columns = ['targetColumnName', 'indexColumnName']
-    targetSentenceFrame.sort(columns='indexColumnName', ascending=True)
-
-    documents, dictionaryObj = pre_process(targetSentenceFrame.targetColumnName.tolist(), configObject, dockerId,
-                                           lang, workingDir, pathStopWords, docker_sudo)
+    documents, dictionaryObj = pre_process(targetSentenceFrame.targetColumnName.tolist(), param_object)
 
     # make corpus
     corpusArray = lda_module.createCorpus(documents, dictionaryObj)
@@ -240,18 +228,15 @@ def main(inputFilePath, inputfileParams, topicParams, sentExtractParams, project
     # check vectorized corpus is correct
     _check_doc_term_construction(corpusArray, documents, dictionaryObj)
 
-    min_topics_limit = topicParams['min_topic']
-    max_topics_limit = topicParams['max_topic']
-
     # process main
-    if mode == 'lda':
-        clusteringResults = mode_lda(corpusArray, vocabList, min_topics_limit, max_topics_limit, nTopWords, configObject)
+    if param_object.algorithm_param.clusteringModel == 'lda':
+        clusteringResults = mode_lda(corpusArray, vocabList, param_object)
 
     # transform into JSON format which has topicParam, topicID, wordsInTopic, sentenceInTopic, tokensInTopic
     clusteredObjects = format_output(clusteringResults, documents, targetSentenceFrame)
-    clusteredObjects = getBestSentence(clusteredObjects, sentExtractParams)
+    clusteredObjects = getBestSentence(clusteredObjects, param_object.algorithm_param.nSentence, param_object.tokenizer_param)
 
-    pathOutPutJson = os.path.join(workingDir, '{}.json'.format(projectName))
+    pathOutPutJson = os.path.join(param_object.working_param.workingDir, '{}.json'.format(param_object.projectName))
     with codecs.open(pathOutPutJson, 'w', 'utf-8') as f:
         f.write(json.dumps(obj=clusteredObjects, ensure_ascii=False, indent=4))
 

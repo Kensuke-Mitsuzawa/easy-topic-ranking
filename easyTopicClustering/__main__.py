@@ -68,8 +68,6 @@ if __name__ == '__main__':
     abs_path_dir = os.path.dirname(abs_path)
     os.chdir(abs_path_dir)
 
-    __exmaple_usage()
-
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('--lang', default='ja', required=False, help='language selection ja/en. Default is ja')
     parser.add_argument('--dockerId', required=False, default='', help='dockerId to preprocess Japanese input')
@@ -78,10 +76,10 @@ if __name__ == '__main__':
     parser.add_argument('--encoding', required=False, default='utf-8', help='character encode of input file. Default is utf-8')
     parser.add_argument('--targetColumnName', required=False, default='contents', help='column name of data in file.')
     parser.add_argument('--indexColumnName', required=False, default='docIndex', help='index of documents')
-    parser.add_argument('--sheetName', required=False, default='', help='sheetName in which data is.')
+    parser.add_argument('--sheetName', required=False, default='Sheet1', help='sheetName in which data is.')
 
     # mail setting
-    parser.add_argument('--sendMail', required=False, default=False, action='store_true', help='if added, send email.')
+    parser.add_argument('--subject', required=False, default=str, help='subject')
     parser.add_argument('--mailFrom', required=False, default='', help='mail address from')
     parser.add_argument('--mailTo', required=False, default='', help='mail address to')
 
@@ -100,32 +98,27 @@ if __name__ == '__main__':
     parser.add_argument('--n_extract_sent', required=False, default=2, type=int, help='N of representative sentences in cluster')
     parser.add_argument('--pathNeologd', required=False, default='/usr/local/lib/mecab/dic/mecab-ipadic-neologd/',
                         type=str, help='path to mecab neologd dictionary')
+    parser.add_argument('--pathUserDict', required=False, default='',
+                        type=str, help='path to mecab userdict dictionary')
     parser.add_argument('--osType', required=False, default='mac', type=str, help='os type. mac or centOs')
 
 
     parser.add_argument('--workingDir', required=True, help='tmporary working Dir')
     args = parser.parse_args()
 
-    # TODO pramsはパラメータクラスにしてもいいかもしれない
-    sentExtractParams = {'n_sentence': args.n_extract_sent, 'pathNeologd': args.pathNeologd,
-                         'osType': args.osType}
-    fileParams = {'targetColumnName': args.targetColumnName, 'indexColumnName': args.indexColumnName,
-                  'coding': args.encoding, 'sheetName': args.sheetName}
-    topicParams = {'min_topic': args.min_topics, 'max_topic': args.max_topics}
 
-    param_object = Params(targetColumnName=args.targetColumnName, indexColumnName=args.indexColumnName,
-           encoding=args.encoding, sheetName=args.sheetName, min=args.min_topics, max=args.max_topics, model=args.mode,
-           nSentence=args.n_extract_sent, pathNeologdDict=args.pathNeologd, osType=args.osType)
-
-
-    if args.lang=='ja' and args.dockerId=='':
-        sys.exit('You must specify dockerId if lang is ja. System Ends')
-
-    pathOutPutJson = main(inputFilePath=args.inputFilePath, inputfileParams=fileParams, topicParams=topicParams,
-         projectName=args.projectName, pathConfigFile=args.pathConfigFile,
-         pathStopWords=args.pathStopWords, dockerId=args.dockerId, docker_sudo=args.dockerSudo,
-         mode=args.mode, lang=args.lang, nTopWords=args.n_top_words, workingDir=args.workingDir)
+    param_object = Params(projectName=args.projectName, lang=args.lang, inputFile=args.inputFilePath,
+                          targetColumnName=args.targetColumnName, indexColumnName=args.indexColumnName,
+                          encoding=args.encoding, sheetName=args.sheetName, min=args.min_topics, max=args.max_topics,
+                          model=args.mode, nSentence=args.n_extract_sent, nTopWords=args.n_top_words,
+                          pathUserDict=args.pathUserDict, pathNeologdDict=args.pathNeologd,
+                          pathParamConfig=args.pathConfigFile, pathStopWord=args.pathStopWords,
+                          osType=args.osType, dockerId=args.dockerId, dockerSudo=args.dockerSudo,
+                          mailTo=args.mailTo, mailFrom=args.mailFrom, subject=args.subject, workingDir=args.workingDir)
+    pathOutPutJson = main(param_object)
 
     pathResource = os.path.abspath(args.workingDir)
-    generate_html_report(pathScriptDir=abs_path_dir, pathToJson=pathOutPutJson, projetcName=args.projectName,
-                         resourceDir=pathResource, mailFrom=args.mailFrom, mailTo=args.mailTo, sendMail=args.sendMail)
+    generate_html_report(pathScriptDir=abs_path_dir, pathToJson=pathOutPutJson,
+                         projetcName=param_object.projectName, resourceDir=pathResource,
+                         mailFrom=param_object.mail_param.mailFrom,
+                         mailTo=param_object.mail_param.mailTo, sendMail=param_object.mail_param.is_mail)

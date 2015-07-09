@@ -8,34 +8,124 @@ import json
 import easyTopicClustering.lda_module as lda_wrapper
 import easyTopicClustering.rankingInterface as interface
 import easyTopicClustering.MorphologySplitter as MorphologySplitter
+from easyTopicClustering.models.params import Params
+from easyTopicClustering.parser import Parser
+from easyTopicClustering.rankingInterface import pre_process
+from easyTopicClustering.rankingInterface import main
 
 
 class TestRankingCodes(unittest.TestCase):
 
-    def setUp(self):
-        abs_path = os.path.abspath(sys.argv[0])
-        abs_path_dir = os.path.dirname(abs_path)
-        os.chdir(abs_path_dir)
-        import logging
-        logging.basicConfig(level=logging.INFO)
+    def test_mecab(self):
 
-        print 'setup'
+        inputFilePath = 'resources/inputSample.csv'
+        dockerId = ''
+        dockerSudo = False
+        pathConfigFile = 'resources/ldaConfig.ini'
+        pathStopWords = 'resources/stopWord.csv'
+
+        param_object = Params(projectName='exmaple',
+                              lang='ja',
+                              inputFile=inputFilePath,
+                              targetColumnName='contents',
+                              indexColumnName='docIndex',
+                              encoding='utf-8',
+                              sheetName='',
+                              min=2,
+                              max=5,
+                              model='lda',
+                              nSentence=2,
+                              nTopWords=15,
+                              pathNeologdDict='/usr/local/lib/mecab/dic/mecab-ipadic-neologd/',
+                              pathUserDict='',
+                              osType='mac',
+                              dockerId=dockerId,
+                              dockerSudo=dockerSudo,
+                              mailTo='',
+                              mailFrom='',
+                              subject='',
+                              workingDir='easyTopicClustering/tmpDir',
+                              pathParamConfig=pathConfigFile,
+                              pathStopWord=pathStopWords)
+        file_parser = Parser(param_object)
+        targetSentenceFrame = file_parser.load_data()
+
+        documents, dictionaryObj = pre_process(targetSentenceFrame.targetColumnName.tolist(), param_object)
 
 
-    def test_file_load(self):
-        try:
-            pathInputCsv = 'resources/inputSample.csv'
-            inputFrame = interface.load_data(pathInputCsv, coding='utf-8')
-        except Exception as e:
-            sys.exit('file loading error because of {}'.format(e))
-        try:
-            pathInputXlsx = 'resources/inputSample.xlsx'
-            inputFrame = interface.load_data(pathInputXlsx, sheetName='Sheet1')
-        except Exception as e:
-            sys.exit('file loading error becasuse of {}'.format(e))
+    def test_docker(self):
+
+        inputFilePath = 'resources/inputSample.csv'
+        dockerId = 'aa2685b94082'
+        dockerSudo = False
+        pathConfigFile = 'resources/ldaConfig.ini'
+        pathStopWords = 'resources/stopWord.csv'
+
+        param_object = Params(projectName='exmaple',
+                              lang='ja',
+                              inputFile=inputFilePath,
+                              targetColumnName='contents',
+                              indexColumnName='docIndex',
+                              encoding='utf-8',
+                              sheetName='',
+                              min=2,
+                              max=5,
+                              model='lda',
+                              nSentence=2,
+                              nTopWords=15,
+                              pathNeologdDict='/usr/local/lib/mecab/dic/mecab-ipadic-neologd/',
+                              pathUserDict='',
+                              osType='mac',
+                              dockerId=dockerId,
+                              dockerSudo=dockerSudo,
+                              mailTo='',
+                              mailFrom='',
+                              subject='',
+                              workingDir='easyTopicClustering/tmpDir',
+                              pathParamConfig=pathConfigFile,
+                              pathStopWord=pathStopWords)
+        file_parser = Parser(param_object)
+        targetSentenceFrame = file_parser.load_data()
+
+        documents, dictionaryObj = pre_process(targetSentenceFrame.targetColumnName.tolist(), param_object)
+
+    def test_mecabLda(self):
+
+        inputFilePath = 'resources/inputSample.csv'
+        dockerId = ''
+        dockerSudo = False
+        pathConfigFile = 'resources/ldaConfig.ini'
+        pathStopWords = 'resources/stopWord.csv'
+
+        param_object = Params(projectName='exmaple',
+                              lang='ja',
+                              inputFile=inputFilePath,
+                              targetColumnName='contents',
+                              indexColumnName='docIndex',
+                              encoding='utf-8',
+                              sheetName='',
+                              min=2,
+                              max=5,
+                              model='lda',
+                              nSentence=2,
+                              nTopWords=15,
+                              pathNeologdDict='/usr/local/lib/mecab/dic/mecab-ipadic-neologd/',
+                              pathUserDict='',
+                              osType='mac',
+                              dockerId=dockerId,
+                              dockerSudo=dockerSudo,
+                              mailTo='',
+                              mailFrom='',
+                              subject='',
+                              workingDir='easyTopicClustering/tmpDir',
+                              pathParamConfig=pathConfigFile,
+                              pathStopWord=pathStopWords)
+
+        main(param_object)
 
 
-    def test_lda(self):
+
+    def test_dockerlda(self):
 
         min_topics_limit = 3
         max_topics_limit = 5
@@ -73,7 +163,7 @@ class TestRankingCodes(unittest.TestCase):
         documents = interface.constructDocument(splittedStrJson, pos_remained)
         # stopwordをつくる
         stopWords = set(stopWords)
-        pathToSaveDictionary = 'resources/dictionary.dict'
+        pathToSaveDictionary = '../resources/dictionary.dict'
 
         # 辞書を作る
         low_limit = int(configObject.get('stopWordSetting', 'low_frequency_limit'))
@@ -88,38 +178,12 @@ class TestRankingCodes(unittest.TestCase):
         # check vectorized corpus is correct
         interface._check_doc_term_construction(corpusArray, documents, dictionaryObj)
 
-        interface.mode_lda(corpusArray, vocabList, min_topics_limit, max_topics_limit, configObject)
+        #interface.mode_lda(corpusArray, vocabList, min_topics_limit, max_topics_limit, configObject)
 
-        """
-        # topic
-        n_iter = int(configObject.get('ldaConfig', 'n_iteration'))
-        random_state = int(configObject.get('ldaConfig', 'random_state'))
-        topics = 4
-        distriDatas, topicWordDictionary, DocumentTopicDictionary = lda.lda_process(corpusArray, vocabList,
-                                                                                           n_topics=topics,
-                                                                                           n_iter=n_iter,
-                                                                                           random_state=random_state)
-        topic_document_dictionary = interface.summarise_topics(DocumentTopicDictionary)
-        sortedResult = interface.create_topics_ranking(topic_document_dictionary)
 
-        for topicId_value_tuple in sortedResult:
-            topicId = topicId_value_tuple[0]
-            n_document = len(topicId_value_tuple[1])
-            logging.info(u'TopicId {} has {} documents'.format(topicId, n_document))
-            logging.info(u'TopicId {} has words {}'.format(topicId, u' '.join(topicWordDictionary[topicId].tolist())))
-            """
 
 def suite():
     suite = unittest.TestSuite()
     suite.addTests(unittest.makeSuite(TestRankingCodes))
 
     return suite
-
-
-if __name__ == '__main__':
-    abs_path = os.path.abspath(sys.argv[0])
-    abs_path_dir = os.path.dirname(abs_path)
-    os.chdir(abs_path_dir)
-    print abs_path_dir
-    sys.path.append('../')
-    unittest.main()

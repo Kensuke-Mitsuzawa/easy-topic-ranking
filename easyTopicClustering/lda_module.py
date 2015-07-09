@@ -68,7 +68,7 @@ def createDictionary(documents, setStopwords, pathToDictionary, low_limit_int, h
     dictionary = corpora.Dictionary(texts)
     # 最低出現回数(TF)と最高出現率を指定してfiltering
     dictionary = __filterOutLowFreqWords(dictionary, low_limit_int_param=low_limit_int, high_limit_ratio_param=high_limit_ratio)
-    dictionary.save(pathToDictionary)
+    #dictionary.save(pathToDictionary)
 
     return dictionary
 
