@@ -2,7 +2,7 @@
 __author__ = 'kensuke-mi'
 
 import unittest
-import src.lda_module as lda_wrapper
+import easyTopicClustering.lda_module as lda_wrapper
 import lda
 import numpy as np
 

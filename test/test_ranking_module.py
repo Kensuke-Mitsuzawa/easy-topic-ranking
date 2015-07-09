@@ -5,9 +5,9 @@ import sys
 import os
 import json
 
-import src.lda_module as lda_wrapper
-import src.rankingInterface as interface
-import src.MorphologySplitter as MorphologySplitter
+import easyTopicClustering.lda_module as lda_wrapper
+import easyTopicClustering.rankingInterface as interface
+import easyTopicClustering.MorphologySplitter as MorphologySplitter
 
 
 class TestRankingCodes(unittest.TestCase):
@@ -64,7 +64,7 @@ class TestRankingCodes(unittest.TestCase):
                       ]
 
         dockerInputObj = MorphologySplitter.jsonFormatter(targetSentences)
-        temporaryFilePath = MorphologySplitter.saveInTemporaryDir(dockerInputObj, workingDir='src/tmpDir')
+        temporaryFilePath = MorphologySplitter.saveInTemporaryDir(dockerInputObj, workingDir='easyTopicClustering/tmpDir')
         splittedStrJson = json.loads(MorphologySplitter.DockerCall(temporaryFilePath, container_id=dockerId, have_sudo=False))
 
 

@@ -3,6 +3,17 @@ title: "Topic clustering Report"
 output: html_document
 ---
 
+# トピック文書クラスタリング結果
+
+#### 注
+
+* `Topic Parameter`は文書をクラスタリングしたトピック数を示しています。
+* `docs`が各クラスタに属する文書数を示します
+* `sentences`はクラスタ内で代表的な文を示します
+* `words`はクラスタ内のトピック的な単語です。
+* `topicId`には特に深い意味はありません
+
+
 ```{r, header, echo=FALSE, warning=FALSE}
 library(xtable)
 library(plyr)
@@ -19,7 +30,7 @@ showResultInClustering <- function(topicParameter, results_frame){
   
   frameInClustering <- frameInClustering[order(frameInClustering$docs, decreasing = T), ]
   frameInClustering$rank <- 1:nrow(frameInClustering)
-  frameInClustering <- frameInClustering[, c("rank", "docs", "topicId", "words")]
+  frameInClustering <- frameInClustering[, c("rank", "docs", "topicId", "sentences", "words")]
   
   xtable::print.xtable(xtable::xtable(frameInClustering), type = 'html', include.rownames = F)
 

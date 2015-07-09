@@ -1,4 +1,6 @@
 lda.egg-info/
+Rscripts/.RData
+Rscripts/.Rhistory
 easyTopicClustering.egg-info/
 .idea/
 resources/.DS_Store

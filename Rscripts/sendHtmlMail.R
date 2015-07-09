@@ -10,11 +10,13 @@ library(plyr)
 getResultRows <- function(listIndex, topic_cluster_results){
   itemsInList <- topic_cluster_results[[listIndex]]
   wordsItem <- paste(itemsInList$wordsInTopic, collapse = ', ')
+  bestSentences <- paste(itemsInList$bestSentences[[1]], collapse = ' || ')
   
   return(data.frame("topicParameter"=itemsInList$topicParameter,
                     "topicId"=itemsInList$topicID,
                     "docs"=itemsInList$docsCluster,
-                    "words"=wordsItem))
+                    "words"=wordsItem,
+                    "sentences"=bestSentences))
 }
 
 
@@ -41,8 +43,12 @@ send_mail <- function(path_to_html, kMailFrom, kMailTo, kSubject){
 main <- function(script_dir, path_json, save_dir, mailTo, mailFrom, 
                  project_name, flag_send_mail=T, mail_subject='Clustering Result'){
   setwd(script_dir)
+  if(file.exists(path_json)==F){
+    stop("json file can not be found. System exits")
+  }
   topic_cluster_results <- rjson::fromJSON(file = path_json)
   results_frame <- plyr::ldply(.data = 1:length(topic_cluster_results), .fun = getResultRows, topic_cluster_results)
+  print (results_frame)
   
   html_path <- KnitHtml(project_name, save_dir, results_frame)
   
@@ -53,8 +59,8 @@ main <- function(script_dir, path_json, save_dir, mailTo, mailFrom,
 
 
 exampleUsage <- function(){
-  script_dir <- '~/Desktop/analysis_work/sandbox/topicRanking/Rscripts/'
-  path_json <- '../resources/exampleOut.json'
+  script_dir <- '~/Desktop/analysis_work/topicRanking/Rscripts/'
+  path_json <- '../resources/example.json'
   
   flag_send_mail <- F
   mailFrom <- 'hoge'
