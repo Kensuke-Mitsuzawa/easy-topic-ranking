@@ -2,10 +2,9 @@
 
 library(knitr)
 library(markdown)
-library(sendmailR)
 library(optparse)
 library(plyr)
-
+library(tools)
 
 getResultRows <- function(listIndex, topic_cluster_results){
   itemsInList <- topic_cluster_results[[listIndex]]
@@ -30,13 +29,31 @@ KnitHtml <- function(project_name, save_dir, results_frame){
 }
 
 
-send_mail <- function(path_to_html, kMailFrom, kMailTo, kSubject){
+send_mail_sendmailR <- function(path_to_html, kMailFrom, kMailTo, kSubject){
+  library(sendmailR)
   # send html by e-mail
-  html_str <- paste(readLines(path_to_html),collapse="\n")
-  headers <- list(`Content-Type`="text/html; charset = \"utf-8\"", `Content-Trensfer-Encoding`="7bit")
+  html_str <- paste(readLines(path_to_html), collapse="\n")
+  headers <- list("Content-Type"="text/html", "charset" = "utf-8", "Content-Trensfer-Encoding"="7bit")
   msg <- mime_part(html_str)
   msg[["headers"]][["Content-Type"]] <- "text/html"
   sendmailR::sendmail(from = kMailFrom, to = kMailTo, subject = kSubject, headers = headers, msg = msg)
+}
+
+
+send_mail_mailR <- function(path_to_html, kMailFrom, kMailTo, kSubject){
+    library(mailR)
+    # these arguments are initialized in parser
+    smtp_conf <- list(host.name = host.name, user.name = user.name, passwd = user.name)
+    print(smtp_conf)
+    html_str <- paste(readLines(path_to_html), collapse="\n")
+    mailR::send.mail(from = kMailFrom, 
+                     to = kMailTo,
+                     subject = kSubject,
+                     body = html_str,
+                     html = TRUE,
+                     smtp = smtp_conf,
+                     encoding = 'utf-8',
+                     send = TRUE)
 }
 
 
@@ -53,7 +70,7 @@ main <- function(script_dir, path_json, save_dir, mailTo, mailFrom,
   html_path <- KnitHtml(project_name, save_dir, results_frame)
   
   if(flag_send_mail==T){
-    send_mail(html_path, mailFrom, mailTo, kSubject)
+    send_mail_mailR(html_path, mailFrom, mailTo, mail_subject)
   }
 }
 
@@ -81,7 +98,8 @@ option_list <- list(
   optparse::make_option(c('-mail', '--email_address'), type='character', help=''),
   optparse::make_option(c('-savedir', '--save_dir'), type='character', help=''),
   optparse::make_option(c('-pname', '--project_name'), type='character'),
-  optparse::make_option(c('-sendmail', '--mail_send'), type='logical', default=FALSE, help='')
+  optparse::make_option(c('-stmpconf', '--path_smtp_conf'), type='character'),
+  optparse::make_option(c('-sendmail', '--mail_send'), type='logical', action='store_true', default=FALSE, help='')
 )
 opt <- optparse::parse_args(optparse::OptionParser(option_list=option_list))
 
@@ -92,8 +110,14 @@ if(is.null(opt$save_dir)) stop("--save_dir is mandatory option")
 if(opt$mail_send==TRUE){
   if(is.null(opt$email_address)) stop("--email_address is mandatory option")
   if(is.null(opt$email_address_from)) stop("--email_address_from is mandatory option")
+  if(is.null(opt$path_smtp_conf)) stop("--path_smtp_conf is mandatory option")
   email_address <- opt$email_address
   email_address_from <- opt$email_address_from
+  if(file.exists(opt$path_smtp_conf)==F){ stop("file in --path_smtp_conf does not exists") }
+  smtp_conf_df <- read.table(tools::file_path_as_absolute(opt$path_smtp_conf), sep = ',', header = T)
+  host.name <<- as.character(smtp_conf_df$host.name)
+  user.name <<- as.character(smtp_conf_df$user.name)
+  passwd <<- as.character(smtp_conf_df$passwd)
 } else {
   email_address <- ''
   email_address_from <- ''
