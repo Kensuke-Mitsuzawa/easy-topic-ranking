@@ -82,6 +82,7 @@ if __name__ == '__main__':
     parser.add_argument('--subject', required=False, default=str, help='subject')
     parser.add_argument('--mailFrom', required=False, default='', help='mail address from')
     parser.add_argument('--mailTo', required=False, default='', help='mail address to')
+    parser.add_argument('--pathSmtpConf', required=False, default='', help='path to smtp setting file csv')
 
     # config file option
     parser.add_argument('--pathConfigFile', required=True, help='path to config file. Please specify correct config file for method')
@@ -114,11 +115,13 @@ if __name__ == '__main__':
                           pathUserDict=args.pathUserDict, pathNeologdDict=args.pathNeologd,
                           pathParamConfig=args.pathConfigFile, pathStopWord=args.pathStopWords,
                           osType=args.osType, dockerId=args.dockerId, dockerSudo=args.dockerSudo,
-                          mailTo=args.mailTo, mailFrom=args.mailFrom, subject=args.subject, workingDir=args.workingDir)
+                          mailTo=args.mailTo, mailFrom=args.mailFrom, subject=args.subject, pathSmtp=args.pathSmtpConf, 
+                          workingDir=args.workingDir)
     pathOutPutJson = main(param_object)
 
     pathResource = os.path.abspath(args.workingDir)
     generate_html_report(pathScriptDir=abs_path_dir, pathToJson=pathOutPutJson,
                          projetcName=param_object.projectName, resourceDir=pathResource,
                          mailFrom=param_object.mail_param.mailFrom,
-                         mailTo=param_object.mail_param.mailTo, sendMail=param_object.mail_param.is_mail)
+                         mailTo=param_object.mail_param.mailTo, sendMail=param_object.mail_param.is_mail,
+                         pathSmtp=param_object.mail_param.pathSmtp)

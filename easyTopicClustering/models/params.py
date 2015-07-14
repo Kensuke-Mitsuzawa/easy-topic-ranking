@@ -8,7 +8,7 @@ class Params(object):
 
     def __init__(self, projectName, lang, inputFile, targetColumnName, indexColumnName, encoding, sheetName, min, max, model,
                  nSentence, nTopWords, pathUserDict, pathNeologdDict, pathParamConfig, pathStopWord, osType,
-                 dockerId, dockerSudo, mailTo, mailFrom, subject, workingDir):
+                 dockerId, dockerSudo, mailTo, mailFrom, subject, pathSmtp, workingDir):
         if not projectName == '':
             self.projectName = projectName
         else:
@@ -21,7 +21,7 @@ class Params(object):
         self.algorithm_param = AlgorithmParams(clusteringModel=model, nSentence=nSentence, nTopWords=nTopWords,
                                                   pathParamConfig=pathParamConfig, pathStopWord=pathStopWord)
         self.lang_params = LangParam(lang=lang)
-        self.mail_param = MailParam(mailTo, mailFrom, subject)
+        self.mail_param = MailParam(mailTo, mailFrom, subject, pathSmtp)
         self.working_param = DirParams(workingDir)
 
 
@@ -61,7 +61,7 @@ class DirParams(object):
 
 
 class MailParam(object):
-    def __init__(self, mailTo, mailFrom, subject):
+    def __init__(self, mailTo, mailFrom, subject, pathSmtp):
         self.mailTo = mailTo
         self.mailFrom = mailFrom
         self.subject = subject
@@ -73,6 +73,9 @@ class MailParam(object):
             raise OSError("To send mail both of --mailFrom, --mailTo must be filled")
         else:
             self.is_mail = True
+            if os.path.exists(pathSmtp)==False:
+                raise IOError("Smtp config path does not exist in {}".format(pathSmtp))
+            self.pathSmtp = os.path.abspath(pathSmtp)
 
 
 class LangParam(object):

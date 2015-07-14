@@ -43,17 +43,17 @@ send_mail_sendmailR <- function(path_to_html, kMailFrom, kMailTo, kSubject){
 send_mail_mailR <- function(path_to_html, kMailFrom, kMailTo, kSubject){
     library(mailR)
     # these arguments are initialized in parser
-    smtp_conf <- list(host.name = host.name, user.name = user.name, passwd = user.name)
-    print(smtp_conf)
+    smtp_conf <- list(host.name = host.name, user.name = user.name, passwd = passwd)
     html_str <- paste(readLines(path_to_html), collapse="\n")
-    mailR::send.mail(from = kMailFrom, 
+    send.mail(from = kMailFrom, 
                      to = kMailTo,
                      subject = kSubject,
                      body = html_str,
                      html = TRUE,
                      smtp = smtp_conf,
                      encoding = 'utf-8',
-                     send = TRUE)
+                     send = TRUE,
+                     debug = TRUE)
 }
 
 
