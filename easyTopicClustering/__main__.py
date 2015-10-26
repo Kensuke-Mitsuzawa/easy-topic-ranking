@@ -113,4 +113,5 @@ if __name__ == '__main__':
                          projetcName=param_object.projectName, resourceDir=pathResource,
                          mailFrom=param_object.mail_param.mailFrom,
                          mailTo=param_object.mail_param.mailTo, sendMail=param_object.mail_param.is_mail,
-                         pathSmtp=param_object.mail_param.pathSmtp)
+                         pathSmtp='')
+                         #pathSmtp=param_object.mail_param.pathSmtp)
