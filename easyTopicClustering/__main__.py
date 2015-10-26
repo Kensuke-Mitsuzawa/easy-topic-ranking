@@ -12,51 +12,40 @@ logging.basicConfig(level=logging.INFO)
 
 
 def __exmaple_usage():
-    abs_path = os.path.abspath(sys.argv[0])
-    abs_path_dir = os.path.dirname(abs_path)
-    os.chdir(abs_path_dir)
-
     inputFilePath = '../resources/inputSample.csv'
-    inputfileParams = {'targetColumnName': 'contents', 'indexColumnName': 'docIndex', 'coding': 'utf-8', 'sheetName': ''}
     projectName = 'example'
-
     pathConfigFile = '../resources/ldaConfig.ini'
     pathStopWords = '../resources/stopWord.csv'
+    working_dir = '../easyTopicClustering/tmpDir'
 
-    docker_sudo = False
-    dockerID = 'aa2685b94082'
-
-    lang = 'ja'
-    n_top_words = 15
-
-    topicParams = {'min_topic': 3, 'max_topic': 5}
-    mode = 'lda'
-
-    workingDir = './tmpDir'
-
-    sentExtractParams = {'n_sentence': 2, 'pathNeologd': "/usr/local/lib/mecab/dic/mecab-ipadic-neologd/",
-                         'osType': "mac"}
-
-    param_object = Params(targetColumnName='contents',
+    param_object = Params(projectName=projectName,
+                          lang='ja',
+                          inputFile=inputFilePath,
+                          targetColumnName='contents',
                           indexColumnName='docIndex',
                           encoding='utf-8',
                           sheetName='',
                           min=2,
                           max=5,
                           model='lda',
+                          nTopWords=15,
+                          pathUserDict='',
                           nSentence=2,
+                          pathParamConfig=pathConfigFile,
+                          pathStopWord=pathStopWords,
                           pathNeologdDict='/usr/local/lib/mecab/dic/mecab-ipadic-neologd/',
-                          osType='mac')
+                          osType='mac', dockerId='', dockerSudo=False,
+                          mailTo='', mailFrom='', subject='', pathSmtp='', workingDir=working_dir)
 
 
-    pathOutPutJson = main(inputFilePath=inputFilePath, inputfileParams=inputfileParams, topicParams=topicParams,
-                          sentExtractParams=sentExtractParams, projectName=projectName, pathConfigFile=pathConfigFile,
-                          pathStopWords=pathStopWords, dockerId=dockerID, docker_sudo=docker_sudo,
-                          mode=mode, lang=lang, nTopWords=n_top_words, workingDir=workingDir)
-
+    pathOutPutJson = main(param_object)
     pathResource = os.path.abspath('../resources')
+
+    abs_path_script = __file__
+    abs_path_dir = abs_path_script.replace('test/test_interface.py', '').replace('/c', '')
+
     generate_html_report(pathScriptDir=abs_path_dir, pathToJson=pathOutPutJson, projetcName=projectName,
-                         resourceDir=pathResource, mailFrom='', mailTo='', sendMail=False)
+                         resourceDir=pathResource, mailFrom='', mailTo='', pathSmtp='', sendMail=False)
 
 
     return pathOutPutJson

@@ -6,9 +6,9 @@ import ConfigParser
 
 class Params(object):
 
-    def __init__(self, projectName, lang, inputFile, targetColumnName, indexColumnName, encoding, sheetName, min, max, model,
-                 nSentence, nTopWords, pathUserDict, pathNeologdDict, pathParamConfig, pathStopWord, osType,
-                 dockerId, dockerSudo, mailTo, mailFrom, subject, pathSmtp, workingDir):
+    def __init__(self, projectName, lang, inputFile, targetColumnName, indexColumnName, encoding, sheetName,
+                 min, max, model, nSentence, nTopWords, pathUserDict, pathNeologdDict, pathParamConfig, pathStopWord, osType,
+                 workingDir, dockerId='', dockerSudo=False, mailTo='', mailFrom='', subject='', pathSmtp=''):
         if not projectName == '':
             self.projectName = projectName
         else:

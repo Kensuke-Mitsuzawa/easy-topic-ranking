@@ -1,6 +1,4 @@
 #! -*- coding: utf-8 -*-
-__author__ = 'kensuke-mi'
-
 import lda_module
 import MorphologySplitter
 import pandas as pd
@@ -10,9 +8,14 @@ import logging
 import json
 import ConfigParser
 from parser import Parser as FileParser
+from easyTopicClustering.models.params import Params
 from nLargestDocSummary.parsers.parser import Parser
 from nLargestDocSummary.frequency_summarizer import FrequencySummarizer
 from nLargestDocSummary.mecab_wrapper.mecab_wrapper import MecabWrapper
+
+__author__ = 'kensuke-mi'
+__version__ = 0.2
+
 
 logging.basicConfig(level=logging.INFO)
 
@@ -142,10 +145,6 @@ def format_output(clusteringResults, documents, targetSentenceFrame):
     for topicIdKey in clusteringResults.keys():
         topicRanking = create_topics_ranking(summarise_topics(clusteringResults[topicIdKey]["docs"]))
         for rankingItem in topicRanking:
-
-            # rankingItem is tuple (topicId, [documentIndex])
-            # get tokens in document with clustered document index
-            tokensInDocOfCluster = [documents[documentIndex] for documentIndex in rankingItem[1]]
             # get sentence of input file with clustered document index
             sentencesOfCluster = [targetSentenceFrame.ix[documentIndex, 'targetColumnName']
                                   for documentIndex in rankingItem[1]]
@@ -155,12 +154,36 @@ def format_output(clusteringResults, documents, targetSentenceFrame):
                 "topicID": rankingItem[0],
                 "wordsInTopic": clusteringResults[topicIdKey]["words"][rankingItem[0]].tolist(),
                 "docsCluster": len(rankingItem[1]),
-                "sentences": sentencesOfCluster,
-                "tokenized": tokensInDocOfCluster
+                "sentences": sentencesOfCluster
             })
 
 
     return items
+
+
+def format_table(clusteringResults, documents, targetSentenceFrame):
+    assert isinstance(clusteringResults, dict)
+    assert isinstance(documents, list)
+    assert isinstance(targetSentenceFrame, pd.DataFrame)
+
+    row_stack = []
+    for topicIdKey in clusteringResults.keys():
+        topicRanking = create_topics_ranking(summarise_topics(clusteringResults[topicIdKey]["docs"]))
+        assert isinstance(topicRanking, list)
+        for rankingItem in topicRanking:
+            # get sentence of input file with clustered document index
+            sentencesOfCluster = [
+                {
+                    'topic_parameter': topicIdKey,
+                    'topic_id': rankingItem[0],
+                    'document_index': documentIndex,
+                    'sentence': targetSentenceFrame.ix[documentIndex, 'targetColumnName']
+                }
+                for documentIndex in rankingItem[1]
+                ]
+            row_stack += sentencesOfCluster
+    table = pd.DataFrame(row_stack)
+    return table.reindex_axis(['topic_parameter', 'topic_id', 'document_index', 'sentence'], axis=1)
 
 
 def mode_lda(corpusArray, vocabList, param_object):
@@ -215,6 +238,7 @@ def getBestSentence(clusteredObjects, n_sentence, tokenizer_param):
 
 
 def main(param_object):
+    assert isinstance(param_object, Params)
     import codecs
 
     file_parser = FileParser(param_object)
@@ -236,10 +260,14 @@ def main(param_object):
     clusteredObjects = format_output(clusteringResults, documents, targetSentenceFrame)
     clusteredObjects = getBestSentence(clusteredObjects, param_object.algorithm_param.nSentence, param_object.tokenizer_param)
 
+    id_sentence_table = format_table(clusteringResults, documents, targetSentenceFrame)
+    assert isinstance(id_sentence_table, pd.DataFrame)
+
     pathOutPutJson = os.path.join(param_object.working_param.workingDir, '{}.json'.format(param_object.projectName))
     with codecs.open(pathOutPutJson, 'w', 'utf-8') as f:
         f.write(json.dumps(obj=clusteredObjects, ensure_ascii=False, indent=4))
 
+    pathOutPutTSV = os.path.join(param_object.working_param.workingDir, '{}.tsv'.format(param_object.projectName))
+    id_sentence_table.to_csv(pathOutPutTSV, sep='\t', index=False, index_label=False, encoding='utf-8', quoting=2)
+
     return os.path.abspath(pathOutPutJson)
-
-

@@ -4,6 +4,9 @@ Rscripts/.Rhistory
 easyTopicClustering.egg-info/
 .idea/
 resources/.DS_Store
+build/
+dist/
+easyTopicClustering/tmpDir/
 *.md
 *.html
 *.json
