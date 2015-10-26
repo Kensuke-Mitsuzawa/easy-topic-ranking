@@ -108,7 +108,7 @@ if __name__ == '__main__':
                           workingDir=args.workingDir)
     pathOutPutJson = main(param_object)
 
-    pathResource = os.path.abspath(args.workingDir)
+    pathResource = os.path.abspath(os.path.join(args.workingDir, param_object.projectName))
     generate_html_report(pathScriptDir=abs_path_dir, pathToJson=pathOutPutJson,
                          projetcName=param_object.projectName, resourceDir=pathResource,
                          mailFrom=param_object.mail_param.mailFrom,

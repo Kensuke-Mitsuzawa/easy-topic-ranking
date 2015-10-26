@@ -238,7 +238,7 @@ def getBestSentence(clusteredObjects, n_sentence, tokenizer_param):
 
 
 def main(param_object):
-    assert isinstance(param_object, Params)
+    #assert isinstance(param_object, Params)
     import codecs
 
     file_parser = FileParser(param_object)
@@ -263,11 +263,16 @@ def main(param_object):
     id_sentence_table = format_table(clusteringResults, documents, targetSentenceFrame)
     assert isinstance(id_sentence_table, pd.DataFrame)
 
-    pathOutPutJson = os.path.join(param_object.working_param.workingDir, '{}.json'.format(param_object.projectName))
+    # -------------------------------------------
+    # make directory
+    if os.path.exists(os.path.join(param_object.working_param.workingDir, param_object.projectName))==False:
+        os.mkdir(os.path.join(param_object.working_param.workingDir, param_object.projectName))
+
+    pathOutPutJson = os.path.join(param_object.working_param.workingDir, param_object.projectName, '{}.json'.format(param_object.projectName))
     with codecs.open(pathOutPutJson, 'w', 'utf-8') as f:
         f.write(json.dumps(obj=clusteredObjects, ensure_ascii=False, indent=4))
 
-    pathOutPutTSV = os.path.join(param_object.working_param.workingDir, '{}.tsv'.format(param_object.projectName))
+    pathOutPutTSV = os.path.join(param_object.working_param.workingDir, param_object.projectName, '{}.tsv'.format(param_object.projectName))
     id_sentence_table.to_csv(pathOutPutTSV, sep='\t', index=False, index_label=False, encoding='utf-8', quoting=2)
 
     return os.path.abspath(pathOutPutJson)
