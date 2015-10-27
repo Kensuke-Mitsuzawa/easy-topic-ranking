@@ -17,7 +17,8 @@ class TestCommandLineInterface(unittest.TestCase):
 
     def test_params(self):
 
-        inputFilePath = '../resources/inputSample.csv'
+        #inputFilePath = '../resources/inputSample.csv'
+        inputFilePath = '../resources/inputSample.xlsx'
         projectName = 'example'
         pathConfigFile = '../resources/ldaConfig.ini'
         pathStopWords = '../resources/stopWord.csv'
@@ -29,7 +30,7 @@ class TestCommandLineInterface(unittest.TestCase):
                               targetColumnName='contents',
                               indexColumnName='docIndex',
                               encoding='utf-8',
-                              sheetName='',
+                              sheetName='Sheet1',
                               min=2,
                               max=5,
                               model='lda',

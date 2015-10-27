@@ -176,7 +176,7 @@ def format_table(clusteringResults, documents, targetSentenceFrame):
                 {
                     'topic_parameter': topicIdKey,
                     'topic_id': rankingItem[0],
-                    'document_index': documentIndex,
+                    'document_index': targetSentenceFrame.ix[documentIndex, 'indexColumnName'],
                     'sentence': targetSentenceFrame.ix[documentIndex, 'targetColumnName']
                 }
                 for documentIndex in rankingItem[1]
@@ -274,8 +274,5 @@ def main(param_object):
 
     pathOutPutTSV = os.path.join(param_object.working_param.workingDir, param_object.projectName, '{}.tsv'.format(param_object.projectName))
     id_sentence_table.to_csv(pathOutPutTSV, sep='\t', index=False, index_label=False, encoding='utf-8', quoting=2)
-
-    pathOutExcel = os.path.join(param_object.working_param.workingDir, param_object.projectName, '{}.xls'.format(param_object.projectName))
-    id_sentence_table.to_excel(pathOutExcel, index=False, sheet_name='clusters')
 
     return os.path.abspath(pathOutPutJson)
