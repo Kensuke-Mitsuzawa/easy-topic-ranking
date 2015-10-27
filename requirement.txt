@@ -1,4 +1,5 @@
 nltk==3.0.1
+xlwt
 lda
 https://mecab.googlecode.com/files/mecab-python-0.996.tar.gz
 git+https://github.com/Kensuke-Mitsuzawa/ja-sentence-search-Nlargest
