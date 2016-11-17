@@ -7,7 +7,7 @@ sys.path.append('./easyTopicClustering/')
 sys.path.append('./test')
 
 
-install_requires = ['gensim==0.11.1-1', 'pandas==0.15.2', 'numpy', 'lda', 'nLargestDocSummary']
+install_requires = ['gensim==0.11.1-1', 'pandas==0.15.2', 'numpy', 'lda', 'nLargestDocSummary', 'xlwt', 'xlrd']
 dependency_links=['git+ssh://git@github.com/Kensuke-Mitsuzawa/ja-sentence-search-Nlargest.git#egg=nLargestDocSummary']
 
 
