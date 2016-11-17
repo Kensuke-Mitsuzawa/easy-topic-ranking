@@ -13,9 +13,6 @@ from nLargestDocSummary.parsers.parser import Parser
 from nLargestDocSummary.frequency_summarizer import FrequencySummarizer
 from nLargestDocSummary.mecab_wrapper.mecab_wrapper import MecabWrapper
 
-__author__ = 'kensuke-mi'
-__version__ = 0.2
-
 
 logging.basicConfig(level=logging.INFO)
 
