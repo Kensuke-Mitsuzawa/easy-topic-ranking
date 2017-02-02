@@ -189,5 +189,5 @@ def _plot_topic_document_result(doc_topic, path_document_distri_prefix='docWordR
 
 
 if __name__ == '__main__':
-    print ''
+    print('')
 
