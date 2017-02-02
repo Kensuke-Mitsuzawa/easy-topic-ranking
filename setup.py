@@ -4,10 +4,10 @@ __author__ = 'kensuke-mi'
 __version__ = 0.21
 
 sys.path.append('./easyTopicClustering/')
-sys.path.append('./test')
+sys.path.append('./tests')
 
 
-install_requires = ['gensim==0.11.1-1', 'pandas==0.15.2', 'numpy', 'lda', 'nLargestDocSummary', 'xlwt', 'xlrd']
+install_requires = ['typing', 'gensim==0.11.1-1', 'pandas', 'numpy', 'lda', 'nLargestDocSummary', 'xlwt', 'xlrd', 'JapaneseTokenizer']
 dependency_links=['git+ssh://git@github.com/Kensuke-Mitsuzawa/ja-sentence-search-Nlargest.git#egg=nLargestDocSummary']
 
 

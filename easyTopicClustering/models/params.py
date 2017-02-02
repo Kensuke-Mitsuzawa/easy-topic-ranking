@@ -2,7 +2,11 @@
 __author__ = 'kensuke-mi'
 
 import os
-import ConfigParser
+import six
+if six.PY2:
+    from ConfigParser import configparser
+else:
+    from configparser import ConfigParser
 
 class Params(object):
 
@@ -41,10 +45,17 @@ class AlgorithmParams(object):
         if os.path.exists(self.pathConfig) == False:
             raise IOError("Config file does not exist. System ends")
 
-        config = ConfigParser.SafeConfigParser()
-        config.read(self.pathConfig)
+        if six.PY2:
+            config = ConfigParser.SafeConfigParser()
+        else:
+            config = ConfigParser(allow_no_value=True)
 
-        self.posRemained = config.get('POS', 'pos_remained').decode('utf-8').split(u',')
+        config.read(self.pathConfig)
+        if six.PY2:
+            self.posRemained = config.get('POS', 'pos_remained').decode('utf-8').split(u',')
+        else:
+            self.posRemained = config.get('POS', 'pos_remained').split(',')
+
         self.stopLowLimit = int(config.get('stopWordSetting', 'low_frequency_limit'))
         self.stopHighLimit = float(config.get('stopWordSetting', 'high_ratio_limit'))
 

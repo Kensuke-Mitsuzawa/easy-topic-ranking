@@ -4,7 +4,6 @@ __author__ = 'kensuke-mi'
 from gensim import corpora
 import numpy as np
 import lda
-import lda.datasets
 import logging
 logging.basicConfig(level=logging.INFO)
 

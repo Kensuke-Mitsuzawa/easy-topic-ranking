@@ -5,15 +5,16 @@ import unittest
 import easyTopicClustering.lda_module as lda_wrapper
 import lda
 import numpy as np
+import six
 
 class TestLdaCodes(unittest.TestCase):
 
     def setUp(self):
-        print ''
+        print('')
 
 
     def test_lda_lib(self):
-        """test lda module works or not
+        """tests lda module works or not
 
         :return:
         """
@@ -35,15 +36,21 @@ class TestLdaCodes(unittest.TestCase):
         n_top_words = 8
         for i, topic_dist in enumerate(topic_word):
             topic_words = np.array(vocab)[np.argsort(topic_dist)][:-n_top_words:-1]
-            print u'Topic {}:{}'.format(i, u' '.join(topic_words))
+            if six.PY2:
+                print(u'Topic {}:{}'.format(i, u' '.join(topic_words)))
+            else:
+                print('Topic {}:{}'.format(i, ' '.join(topic_words)))
 
         doc_topic = model.doc_topic_
         for i in range(X.shape[0]):
-            print u"top topic: {}".format(doc_topic[i].argmax())
+            if six.PY2:
+                print(u"top topic: {}".format(doc_topic[i].argmax()))
+            else:
+                print("top topic: {}".format(doc_topic[i].argmax()))
 
 
     def test_dictionary(self):
-        """test method to construct word to Id dictionary
+        """tests method to construct word to Id dictionary
 
         :return:
         """
@@ -80,7 +87,7 @@ class TestLdaCodes(unittest.TestCase):
 
 
     def test_process(self):
-        """test example code to topic clustering
+        """tests example code to topic clustering
 
         :return:
         """

@@ -6,12 +6,18 @@ import os
 import sys
 import logging
 import json
-import ConfigParser
+from typing import List, Dict, Tuple, Any
 from parser import Parser as FileParser
-from easyTopicClustering.models.params import Params
+from JapaneseTokenizer import MecabWrapper
+from easyTopicClustering.models.params import Params, TokenizerParams
 from nLargestDocSummary.parsers.parser import Parser
 from nLargestDocSummary.frequency_summarizer import FrequencySummarizer
-from nLargestDocSummary.mecab_wrapper.mecab_wrapper import MecabWrapper
+import six
+
+if six.PY2:
+    import ConfigParser
+else:
+    import configparser as ConfigParser
 
 
 logging.basicConfig(level=logging.INFO)
@@ -75,8 +81,12 @@ def constructDocument(splittedStrJson, posRemained):
 
 def load_csv_data(pathStopWords, coding):
     stopFrame = pd.read_csv(pathStopWords, encoding=coding,header=0)
-    stopWordsList = [unicode(item)
-                     for item in stopFrame.ix[:, "stopwrods"].tolist()]
+    if six.PY2:
+        stopWordsList = [unicode(item)
+                         for item in stopFrame.ix[:, "stopwrods"].tolist()]
+    else:
+        stopWordsList = [item
+                         for item in stopFrame.ix[:, "stopwrods"].tolist()]
 
     return stopWordsList
 
@@ -97,12 +107,12 @@ def pre_process(targetSentences, param_object):
             documents = constructDocument(splittedStrJson, pos_remained)
 
         elif param_object.tokenizer_param.mode=='mecab':
-            from nLargestDocSummary.mecab_wrapper.mecab_wrapper import MecabWrapper
+            from JapaneseTokenizer import MecabWrapper
             pathNeologd = param_object.tokenizer_param.pathNeologd
             osType = param_object.tokenizer_param.osType
-
-            mecab_wrapper = MecabWrapper(dictType='neologd', osType=osType, pathNeologd=pathNeologd)
-            documentsList = [mecab_wrapper.tokenize(sentence=s, is_feature=True) for s in targetSentences]
+            mecab_wrapper = MecabWrapper(dictType='neologd', osType=osType, path_mecab_config=pathNeologd)
+            #mecab_wrapper = MecabWrapper(dictType='neologd', osType=osType, pathNeologd=pathNeologd)
+            documentsList = [mecab_wrapper.tokenize(sentence=s, is_feature=True).convert_list_object() for s in targetSentences]
             documents = [
                 [t[0]
                     for t in s
@@ -214,13 +224,12 @@ def mode_lda(corpusArray, vocabList, param_object):
 
 
 def getBestSentence(clusteredObjects, n_sentence, tokenizer_param):
-
+    # type: (Dict[str,Any], int, TokenizerParams) -> List[Dict[str,Any]]
     newClusteredObjects = []
-
     pathNeologd = tokenizer_param.pathNeologd
     osType = tokenizer_param.osType
 
-    mecab_wrapper = MecabWrapper(dictType='neologd', osType=osType, pathNeologd=pathNeologd)
+    mecab_wrapper = MecabWrapper(dictType='neologd', osType=osType, path_mecab_config=pathNeologd)
     for clusteredObj in clusteredObjects:
         # give clustered document. One cluster = Paragraph
         clustered_documents = u'\n'.join(clusteredObj['sentences'])
@@ -229,7 +238,12 @@ def getBestSentence(clusteredObjects, n_sentence, tokenizer_param):
         fs = FrequencySummarizer(language='ja', documentObj=documentObj)
         summarized = fs.summarize(n=n_sentence)
         clusteredObj['bestSentences'] = summarized
+        ### intに変換する ###
+        clusteredObj['topicID'] = int(clusteredObj['topicID'])
         newClusteredObjects.append(clusteredObj)
+
+
+
 
     return newClusteredObjects
 
@@ -252,6 +266,8 @@ def main(param_object):
     # process main
     if param_object.algorithm_param.clusteringModel == 'lda':
         clusteringResults = mode_lda(corpusArray, vocabList, param_object)
+    else:
+        raise NotImplementedError()
 
     # transform into JSON format which has topicParam, topicID, wordsInTopic, sentenceInTopic, tokensInTopic
     clusteredObjects = format_output(clusteringResults, documents, targetSentenceFrame)

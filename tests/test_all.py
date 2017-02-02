@@ -1,10 +1,10 @@
 #! -*- coding: utf-8 -*-
 __author__ = 'kensuke-mi'
 
-from test_lda_module import TestLdaCodes
-from test_ranking_module import TestRankingCodes
-from test_interface import TestCommandLineInterface
-from test_parser import TestParser
+from tests.test_lda_module import TestLdaCodes
+from tests.test_ranking_module import TestRankingCodes
+from tests.test_interface import TestCommandLineInterface
+from tests.test_parser import TestParser
 import unittest
 
 

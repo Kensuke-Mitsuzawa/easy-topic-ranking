@@ -42,7 +42,7 @@ def __exmaple_usage():
     pathResource = os.path.abspath('../resources')
 
     abs_path_script = __file__
-    abs_path_dir = abs_path_script.replace('test/test_interface.py', '').replace('/c', '')
+    abs_path_dir = abs_path_script.replace('tests/test_interface.py', '').replace('/c', '')
 
     generate_html_report(pathScriptDir=abs_path_dir, pathToJson=pathOutPutJson, projetcName=projectName,
                          resourceDir=pathResource, mailFrom='', mailTo='', pathSmtp='', sendMail=False)

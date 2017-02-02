@@ -39,7 +39,7 @@ class TestCommandLineInterface(unittest.TestCase):
                               nSentence=2,
                               pathParamConfig=pathConfigFile,
                               pathStopWord=pathStopWords,
-                              pathNeologdDict='/usr/local/lib/mecab/dic/mecab-ipadic-neologd/',
+                              pathNeologdDict='/usr/local/bin/',
                               osType='mac', dockerId='', dockerSudo=False,
                               mailTo='', mailFrom='', subject='', pathSmtp='', workingDir=working_dir)
         isinstance(param_object, Params)
@@ -48,10 +48,10 @@ class TestCommandLineInterface(unittest.TestCase):
         pathResource = os.path.abspath('../resources')
 
         abs_path_script = __file__
-        abs_path_dir = abs_path_script.replace('test/test_interface.py', '').replace('/c', '')
+        abs_path_dir = abs_path_script.replace('tests/test_interface.py', '').replace('/c', '')
 
-        generate_html_report(pathScriptDir=abs_path_dir, pathToJson=pathOutPutJson, projetcName=projectName,
-                             resourceDir=pathResource, mailFrom='', mailTo='', pathSmtp='', sendMail=False)
+        #generate_html_report(pathScriptDir=abs_path_dir, pathToJson=pathOutPutJson, projetcName=projectName,
+        #                     resourceDir=pathResource, mailFrom='', mailTo='', pathSmtp='', sendMail=False)
 
 
 

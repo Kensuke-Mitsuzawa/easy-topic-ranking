@@ -82,7 +82,7 @@ def morphogicalSplitMain(pathFailedJson, failedJsonObjects, container_id):
 
 
 def __test():
-    # test docker container ID aa2685b94082
+    # tests docker container ID aa2685b94082
     import sys
     import os
     abs_path = os.path.abspath(sys.argv[0])
