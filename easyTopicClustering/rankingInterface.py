@@ -1,14 +1,14 @@
 #! -*- coding: utf-8 -*-
-import lda_module
-import MorphologySplitter
 import pandas as pd
 import os
 import sys
 import logging
 import json
 from typing import List, Dict, Tuple, Any
-from parser import Parser as FileParser
 from JapaneseTokenizer import MecabWrapper
+from easyTopicClustering.parser import Parser as FileParser
+from easyTopicClustering import lda_module
+from easyTopicClustering import MorphologySplitter
 from easyTopicClustering.models.params import Params, TokenizerParams
 from nLargestDocSummary.parsers.parser import Parser
 from nLargestDocSummary.frequency_summarizer import FrequencySummarizer

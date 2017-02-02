@@ -3,8 +3,8 @@ import sys
 __author__ = 'kensuke-mi'
 __version__ = 0.21
 
-sys.path.append('./easyTopicClustering/')
-sys.path.append('./tests')
+#sys.path.append('./easyTopicClustering/')
+#sys.path.append('./tests')
 
 
 install_requires = ['typing', 'gensim==0.11.1-1', 'pandas', 'numpy', 'lda', 'nLargestDocSummary', 'xlwt', 'xlrd', 'JapaneseTokenizer']

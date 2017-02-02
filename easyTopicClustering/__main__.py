@@ -5,9 +5,9 @@ import sys
 import os
 import argparse
 import logging
-from rankingInterface import main
-from send_email import generate_html_report
-from models.params import Params
+from easyTopicClustering.rankingInterface import main
+from easyTopicClustering.send_email import generate_html_report
+from easyTopicClustering.models.params import Params
 logging.basicConfig(level=logging.INFO)
 
 

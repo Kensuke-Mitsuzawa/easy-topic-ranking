@@ -4,7 +4,7 @@ __author__ = 'kensuke-mi'
 import pandas
 import os
 import sys
-from models.params import *
+from easyTopicClustering.models.params import *
 
 
 class Parser(object):
