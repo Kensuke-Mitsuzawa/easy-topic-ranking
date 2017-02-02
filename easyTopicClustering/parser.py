@@ -17,7 +17,7 @@ class Parser(object):
         id_header = self.params.file_param.indexColumnName
         targetSentenceFrame = self.inputFrame.loc[:, [content_header, id_header]]
         targetSentenceFrame.columns = ['targetColumnName', 'indexColumnName']
-        targetSentenceFrame.sort(columns='indexColumnName', ascending=True)
+        targetSentenceFrame.sort_values(by='indexColumnName', ascending=True)
 
         self.targetSentenceFrame = targetSentenceFrame
 
