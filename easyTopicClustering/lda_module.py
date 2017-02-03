@@ -2,11 +2,10 @@
 __author__ = 'kensuke-mi'
 
 from gensim import corpora
+from easyTopicClustering import logger_unit
 import numpy as np
 import lda
-import logging
-logging.basicConfig(level=logging.INFO)
-
+logger = logger_unit.logger
 
 def __removeStopWords(documents, stopWords):
     """
@@ -114,13 +113,13 @@ def lda_process(documentNumpyArray, vocabList, n_topics, n_iter=150, random_stat
     topicWordDictionary = {}
     for i, topic_dist in enumerate(topic_word):
         topic_words = np.array(vocabList)[np.argsort(topic_dist)][:-(n_top_words_per_topic+1):-1]
-        logging.info(u'Topic {}:{}'.format(i, u' '.join(topic_words)))
+        logger.info(u'Topic {}:{}'.format(i, u' '.join(topic_words)))
         topicWordDictionary[i] = topic_words
 
     DocumentTopicDictionary = {}
     doc_topic = model.doc_topic_
     for i in range(documentNumpyArray.shape[0]):
-        logging.info(u"document id: {} top topic: {}".format(i, doc_topic[i].argmax()))
+        logger.info(u"document id: {} top topic: {}".format(i, doc_topic[i].argmax()))
         DocumentTopicDictionary[i] = doc_topic[i].argmax()
 
 

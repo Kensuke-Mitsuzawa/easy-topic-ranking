@@ -2,25 +2,23 @@
 import pandas as pd
 import os
 import sys
-import logging
 import json
 from typing import List, Dict, Tuple, Any
 from JapaneseTokenizer import MecabWrapper
 from easyTopicClustering.parser import Parser as FileParser
-from easyTopicClustering import lda_module
+from easyTopicClustering import lda_module, logger_unit
 from easyTopicClustering import MorphologySplitter
 from easyTopicClustering.models.params import Params, TokenizerParams
 from nLargestDocSummary.parsers.parser import Parser
 from nLargestDocSummary.frequency_summarizer import FrequencySummarizer
 import six
+logger = logger_unit.logger
 
 if six.PY2:
     import ConfigParser
 else:
     import configparser as ConfigParser
 
-
-logging.basicConfig(level=logging.INFO)
 
 
 def _check_doc_term_construction(corpusArray, targetSentences, dictionaryObj):
@@ -33,7 +31,7 @@ def _check_doc_term_construction(corpusArray, targetSentences, dictionaryObj):
             word = id_word_dictionary[wordIndex]
             countedWordFreq = targetSentences[documenIndex].count(word)
 
-            logging.debug(u'wordId:{} wordId Frequency:{} realWord:{} word Frequency:{}'.format(wordIndex, wordFreq, word, countedWordFreq))
+            logger.debug(u'wordId:{} wordId Frequency:{} realWord:{} word Frequency:{}'.format(wordIndex, wordFreq, word, countedWordFreq))
             if wordFreq != 0: assert word in targetSentences[documenIndex]
             assert countedWordFreq == wordFreq
 
@@ -211,13 +209,13 @@ def mode_lda(corpusArray, vocabList, param_object):
         topic_document_dictionary = summarise_topics(DocumentTopicDictionary)
         sortedResult = create_topics_ranking(topic_document_dictionary)
 
-        logging.info(u'document clustering with {} topics'.format(topics))
+        logger.info(u'document clustering with {} topics'.format(topics))
         for topicId_value_tuple in sortedResult:
             topicId = topicId_value_tuple[0]
             n_document = len(topicId_value_tuple[1])
-            logging.info(u'TopicId {} has {} documents'.format(topicId, n_document))
-            logging.info(u'TopicId {} has words {}'.format(topicId, u' '.join(topicWordDictionary[topicId].tolist())))
-        logging.info(u'-'*30)
+            logger.info(u'TopicId {} has {} documents'.format(topicId, n_document))
+            logger.info(u'TopicId {} has words {}'.format(topicId, u' '.join(topicWordDictionary[topicId].tolist())))
+        logger.info(u'-'*30)
         clusteringResults[topics] = {"words": topicWordDictionary, "docs": DocumentTopicDictionary}
 
     return clusteringResults

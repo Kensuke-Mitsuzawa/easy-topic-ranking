@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import sys
 __author__ = 'kensuke-mi'
-__version__ = 0.21
+__version__ = 0.22
 
 #sys.path.append('./easyTopicClustering/')
 #sys.path.append('./tests')

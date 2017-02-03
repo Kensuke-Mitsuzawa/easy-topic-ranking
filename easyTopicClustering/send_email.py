@@ -2,9 +2,9 @@
 __author__ = 'kensuke-mi'
 
 import os
-import logging
 import sys
-logging.basicConfig(level=logging.INFO)
+from easyTopicClustering import logger_unit
+logger = logger_unit.logger
 
 def generate_html_report(pathScriptDir, pathToJson, projetcName, resourceDir, mailFrom, mailTo, pathSmtp, sendMail=False):
     import subprocess
@@ -31,13 +31,13 @@ def generate_html_report(pathScriptDir, pathToJson, projetcName, resourceDir, ma
                                                                  'savePath': resourceDir,
                                                                  'project': projetcName})
 
-    logging.info(generate_html_Rcommand)
+    logger.info(generate_html_Rcommand)
     try:
         subprocess.check_output(generate_html_Rcommand, shell=True)
     except Exception as e:
-        logging.error(e)
-        logging.error(e.args)
-        logging.error(e.message)
+        logger.error(e)
+        logger.error(e.args)
+        logger.error(e.message)
         sys.exit("Failed to call Rscript. Check Command to call Rscript")
 
     path_to_html = '{}/{}-report.html'.format(resourceDir, projetcName)

@@ -1,13 +1,13 @@
 #! -*- coding: utf-8 -*-
 __author__ = 'kensuke-mi'
 
-import logging
 import subprocess
 import sys
 import codecs
 import json
 import os
-logging.basicConfig(LEVEL=logging.INFO)
+from easyTopicClustering import logger_unit
+logger = logger_unit.logger
 
 
 def DockerCall(pathFailedJson, container_id, have_sudo=True):
@@ -18,13 +18,13 @@ def DockerCall(pathFailedJson, container_id, have_sudo=True):
         dockerCallCm = "cat {0} |\
         docker exec -i {1} python2.7 /analysis_code/docker_main.py".format(pathFailedJson, container_id)
 
-    logging.debug(msg="called docker with {}".format(dockerCallCm))
+    logger.debug(msg="called docker with {}".format(dockerCallCm))
     try:
         res = subprocess.check_output( dockerCallCm, shell=True)
     except Exception as e:
-        logging.error(e)
-        logging.error(e.args)
-        logging.error(e.message)
+        logger.error(e)
+        logger.error(e.args)
+        logger.error(e.message)
         sys.exit("Failed to call docker container. Check container status.")
 
     return res
