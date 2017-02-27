@@ -108,7 +108,7 @@ def pre_process(targetSentences, param_object):
             from JapaneseTokenizer import MecabWrapper
             pathNeologd = param_object.tokenizer_param.pathNeologd
             osType = param_object.tokenizer_param.osType
-            mecab_wrapper = MecabWrapper(dictType='neologd', osType=osType, path_mecab_config=pathNeologd)
+            mecab_wrapper = MecabWrapper(dictType='neologd', path_mecab_config=pathNeologd)
             #mecab_wrapper = MecabWrapper(dictType='neologd', osType=osType, pathNeologd=pathNeologd)
             documentsList = [mecab_wrapper.tokenize(sentence=s, is_feature=True).convert_list_object() for s in targetSentences]
             documents = [
@@ -227,7 +227,7 @@ def getBestSentence(clusteredObjects, n_sentence, tokenizer_param):
     pathNeologd = tokenizer_param.pathNeologd
     osType = tokenizer_param.osType
 
-    mecab_wrapper = MecabWrapper(dictType='neologd', osType=osType, path_mecab_config=pathNeologd)
+    mecab_wrapper = MecabWrapper(dictType='neologd', path_mecab_config=pathNeologd)
     for clusteredObj in clusteredObjects:
         # give clustered document. One cluster = Paragraph
         clustered_documents = u'\n'.join(clusteredObj['sentences'])
